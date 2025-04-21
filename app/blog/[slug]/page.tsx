@@ -1,5 +1,3 @@
-"use client"
-
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Calendar, User, Clock } from "lucide-react"
@@ -25,8 +23,8 @@ async function getBlogPost(slug: string) {
   }
 }
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const { post, error } = await getBlogPost(params.slug)
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { post, error } = await getBlogPost((await params).slug)
 
   // If there's a database error, show an error message
   if (error) {

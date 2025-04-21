@@ -1,5 +1,3 @@
-"use client"
-
 import Link from "next/link"
 import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,11 +12,11 @@ export default async function BlogPage() {
   await ensureTablesExist()
 
   // Fetch blog posts from the database with error handling
-  let posts = []
+  let posts: any[] = []
   let dbError = false
 
   try {
-    posts = await db.select().from(blogPosts).orderBy(blogPosts.createdAt, "desc")
+    posts = await db.select().from(blogPosts).orderBy(blogPosts.createdAt)
   } catch (error) {
     console.error("Error fetching blog posts:", error)
     dbError = true
