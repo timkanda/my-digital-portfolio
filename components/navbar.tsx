@@ -6,7 +6,14 @@ import { Shield, Menu, X, Database } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useState } from "react"
-
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs'
 export function Navbar() {
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -72,6 +79,13 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
+        <SignedOut>
+              <SignInButton />
+              <SignUpButton />
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           <ThemeToggle />
           <Button variant="outline" size="sm" asChild>
             <Link href="/admin">Admin Dashboard</Link>
