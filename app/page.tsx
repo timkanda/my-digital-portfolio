@@ -48,11 +48,11 @@ export default async function Home() {
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Link href="/contact">
+                {/* <Link href="/contact">
                   <Button size="lg" className="bg-primary hover:bg-primary/90">
                     Get Started
                   </Button>
-                </Link>
+                </Link> */}
                 <Link href="/services">
                   <Button size="lg" variant="outline">
                     Learn More
@@ -117,10 +117,10 @@ export default async function Home() {
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
-              <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Services</div>
+              <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Projects</div>
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Comprehensive Cybersecurity Solutions</h2>
               <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Protect your organization with our expert cybersecurity services tailored to your specific needs.
+                Protect you from cybersecurity attackers.
               </p>
             </div>
           </div>

@@ -30,9 +30,9 @@ export function Navbar() {
       active: pathname === "/blog" || pathname.startsWith("/blog/"),
     },
     {
-      href: "/services",
-      label: "Services",
-      active: pathname === "/services",
+      href: "/projects",
+      label: "Projects",
+      active: pathname === "/projects",
     },
     {
       href: "/admin",
