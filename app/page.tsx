@@ -14,11 +14,18 @@ export default async function Home() {
   await ensureTablesExist()
 
   // Fetch the latest 3 blog posts with error handling
-  let latestPosts = []
+  let latestPosts: { id: string; slug: string; title: string; excerpt: string; coverImage?: string; createdAt: string }[] = []
   let dbError = false
 
   try {
-    latestPosts = await db.select().from(blogPosts).orderBy(blogPosts.createdAt, "desc").limit(3)
+    latestPosts = (await db.select().from(blogPosts).orderBy(blogPosts.createdAt).limit(3)).map(post => ({
+      id: post.id.toString(),
+      slug: post.slug,
+      title: post.title,
+      excerpt: post.excerpt,
+      coverImage: post.coverImage || undefined,
+      createdAt: post.createdAt ? post.createdAt.toISOString() : ""
+    }))
   } catch (error) {
     console.error("Error fetching blog posts:", error)
     dbError = true

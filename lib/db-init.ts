@@ -86,7 +86,7 @@ async function insertSampleData() {
   try {
     // Check if blog_posts table is empty
     const postsCheck = await db.execute(sql`SELECT COUNT(*) FROM blog_posts`)
-    const postsCount = Number.parseInt(postsCheck.rows[0]?.count || "0")
+    const postsCount = Number.parseInt(String(postsCheck.rows[0]?.count || "0"))
 
     if (postsCount === 0) {
       console.log("Inserting sample blog posts...")
@@ -129,7 +129,7 @@ async function insertSampleData() {
 
     // Check if subscribers table is empty
     const subscribersCheck = await db.execute(sql`SELECT COUNT(*) FROM subscribers`)
-    const subscribersCount = Number.parseInt(subscribersCheck.rows[0]?.count || "0")
+    const subscribersCount = Number.parseInt(String(subscribersCheck.rows[0]?.count || "0"))
 
     if (subscribersCount === 0) {
       console.log("Inserting sample subscribers...")

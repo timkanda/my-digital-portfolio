@@ -49,7 +49,7 @@ export async function getContactSubmissions() {
     // Ensure database tables exist before querying
     await ensureTablesExist()
 
-    const submissions = await db.select().from(contactSubmissions).orderBy(contactSubmissions.createdAt, "desc")
+    const submissions = await db.select().from(contactSubmissions).orderBy(contactSubmissions.createdAt)
     return submissions
   } catch (error) {
     console.error("Error fetching contact submissions:", error)

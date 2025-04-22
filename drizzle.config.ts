@@ -22,9 +22,12 @@ else {
 export default {
   schema: "./app/db/schema.ts",
   out: "./drizzle",
-  driver: "pg",
+  driver: "d1-http",
   dbCredentials: {
-    connectionString: connectionString,
+    accountId: process.env.ACCOUNT_ID || "defaultAccountId",
+    databaseId: process.env.DATABASE_ID || "defaultDatabaseId",
+    token: process.env.TOKEN || "defaultToken",
   },
   strict: true,
+  dialect: "sqlite"
 } satisfies Config
