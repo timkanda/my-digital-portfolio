@@ -34,22 +34,57 @@ export async function ensureTablesExist() {
           id SERIAL PRIMARY KEY,
           email TEXT NOT NULL UNIQUE,
           name TEXT,
-          role TEXT DEFAULT 'user',
           created_at TIMESTAMP DEFAULT NOW()
         )
       `)
+
+      // Create the users table for authentication and role-based access
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          email TEXT NOT NULL UNIQUE,
+          name TEXT,
+          clerk_id TEXT NOT NULL UNIQUE,
+          role VARCHAR(20) DEFAULT 'user' NOT NULL,
+          is_first_user BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `)
     } else {
-      console.log("Tables exist, ensuring role column exists in subscribers table...")
+      console.log("Tables exist, updating schema...")
       
-      // Add role column to subscribers table if it doesn't exist
+      // Drop role column from subscribers table if it exists
+      // This completes the separation between subscribers and authentication
       try {
         await db.execute(sql`
           ALTER TABLE subscribers
-          ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
+          DROP COLUMN IF EXISTS role;
         `);
-        console.log("Role column added or already exists in subscribers table");
+        console.log("Role column removed from subscribers table if it existed");
       } catch (error) {
-        console.error("Error adding role column:", error);
+        console.error("Error removing role column from subscribers table:", error);
+      }
+      
+      console.log("Now checking users table exists...")
+      
+      // Ensure users table exists
+      try {
+        await db.execute(sql`
+          CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            email TEXT NOT NULL UNIQUE,
+            name TEXT,
+            clerk_id TEXT NOT NULL UNIQUE,
+            role VARCHAR(20) DEFAULT 'user' NOT NULL,
+            is_first_user BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+          )
+        `);
+        console.log("Users table created or already exists");
+      } catch (error) {
+        console.error("Error creating users table:", error);
       }
 
       // Create the blog_posts table if it doesn't exist
@@ -68,18 +103,15 @@ export async function ensureTablesExist() {
         )
       `)
 
-      // Create the contact_submissions table if it doesn't exist
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS contact_submissions (
-          id SERIAL PRIMARY KEY,
-          name TEXT NOT NULL,
-          email TEXT NOT NULL,
-          company TEXT,
-          message TEXT NOT NULL,
-          created_at TIMESTAMP DEFAULT NOW(),
-          is_read TEXT DEFAULT 'false'
-        )
-      `)
+      // Drop contact_submissions table if it exists (as requested)
+      try {
+        await db.execute(sql`
+          DROP TABLE IF EXISTS contact_submissions;
+        `);
+        console.log("contact_submissions table removed");
+      } catch (error) {
+        console.error("Error removing contact_submissions table:", error);
+      }
 
       console.log("Tables created successfully")
 

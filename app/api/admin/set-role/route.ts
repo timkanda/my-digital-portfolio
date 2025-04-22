@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, subscribers } from "@/lib/db";
+import { db, users } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/auth";
 
@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
     // Check if user exists
     const existingUser = await db
       .select()
-      .from(subscribers)
-      .where(eq(subscribers.email, email))
+      .from(users)
+      .where(eq(users.email, email))
       .limit(1);
     
     if (existingUser.length === 0) {
@@ -52,9 +52,9 @@ export async function POST(request: NextRequest) {
     
     // Update user role
     await db
-      .update(subscribers)
+      .update(users)
       .set({ role })
-      .where(eq(subscribers.email, email));
+      .where(eq(users.email, email));
     
     return NextResponse.json({ success: true, message: `User role updated to ${role}` });
   } catch (error) {

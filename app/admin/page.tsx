@@ -21,7 +21,8 @@ import {
 import { formatDate } from "@/lib/utils";
 import { Users, FileText, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { db, blogPosts, subscribers } from "@/lib/db";
+import { db, blogPosts, users } from "@/lib/db";
+import { isAdmin } from "@/lib/auth";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ensureTablesExist } from "@/lib/db-init";
@@ -44,15 +45,11 @@ export default async function AdminPage() {
   
   await ensureTablesExist();
   
-  // Check if the user exists in the database and has admin role
-  const userResults = await db
-    .select()
-    .from(subscribers)
-    .where(eq(subscribers.email, email))
-    .limit(1);
+  // Check if the user is an admin
+  const adminStatus = await isAdmin();
   
   // If user is not an admin, show access denied
-  if (userResults.length === 0 || userResults[0]?.role !== 'admin') {
+  if (!adminStatus) {
     return (
       <div className="container mx-auto py-10">
         <div className="bg-red-50 p-6 rounded-lg dark:bg-red-900/20">

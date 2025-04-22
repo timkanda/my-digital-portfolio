@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, subscribers } from "@/lib/db";
+import { db, users } from "@/lib/db";
 import { isAdmin } from "@/lib/auth";
 import { desc } from "drizzle-orm";
 
@@ -20,19 +20,13 @@ export async function GET() {
     }
     
     // Get all users ordered by creation date
-    // This ensures the first user (who is automatically an admin) is identified
-    const users = await db
+    const usersList = await db
       .select()
-      .from(subscribers)
-      .orderBy(subscribers.createdAt);
+      .from(users)
+      .orderBy(users.createdAt);
     
-    // Add a flag for the first user
-    const usersWithFlags = users.map((user, index) => ({
-      ...user,
-      isFirstUser: index === 0
-    }));
-    
-    return NextResponse.json(usersWithFlags);
+    // isFirstUser field is already in the users table
+    return NextResponse.json(usersList);
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(

@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 // Determine the database connection string
 let connectionString: string;
@@ -32,13 +32,24 @@ const sql = neon(connectionString);
 // Create a Drizzle instance
 export const db = drizzle(sql);
 
-// Define the subscribers table schema
+// Define the subscribers table schema - for newsletter subscribers only
 export const subscribers = pgTable("subscribers", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name"),
-  role: text("role").default("user"), // Add a role column with a default value
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Define the users table schema - for authentication and role-based access
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  name: text("name"),
+  clerkId: text("clerk_id").notNull().unique(),
+  role: varchar("role", { length: 20 }).default("user").notNull(),
+  isFirstUser: boolean("is_first_user").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Define the blog posts table schema
@@ -55,13 +66,4 @@ export const blogPosts = pgTable("blog_posts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Define the contact submissions table schema
-export const contactSubmissions = pgTable("contact_submissions", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull(),
-  company: text("company"),
-  message: text("message").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  isRead: text("is_read").default("false"),
-});
+// Contact submissions table removed as requested
