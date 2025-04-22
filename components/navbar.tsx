@@ -35,20 +35,9 @@ export function Navbar() {
       active: pathname === "/services",
     },
     {
-      href: "/contact",
-      label: "Contact",
-      active: pathname === "/contact",
-    },
-    {
       href: "/admin",
       label: "Admin",
       active: pathname === "/admin",
-    },
-    {
-      href: "/db-test",
-      label: "DB Test",
-      active: pathname === "/db-test",
-      icon: <Database className="h-4 w-4 mr-1" />,
     },
   ]
 
@@ -72,7 +61,7 @@ export function Navbar() {
                 route.active ? "text-foreground" : "text-muted-foreground"
               }`}
             >
-              {route.icon}
+              {/* {route.icon} */}
               {route.label}
             </Link>
           ))}
@@ -114,7 +103,7 @@ export function Navbar() {
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                {route.icon}
+                {/* {route.icon} */}
                 {route.label}
               </Link>
             ))}
