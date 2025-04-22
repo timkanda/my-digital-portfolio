@@ -1,5 +1,4 @@
 import { getSubscribers } from "@/app/actions/newsletter";
-import { getContactSubmissions } from "@/app/actions/contact";
 import {
   Card,
   CardContent,
@@ -16,27 +15,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
-import { Users, FileText, MessageSquare, Database } from "lucide-react";
+import { Users, FileText, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { db, blogPosts } from "@/lib/db";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ensureTablesExist } from "@/lib/db-init";
 
 export default async function AdminPage() {
-  // Ensure database tables exist before querying
   await ensureTablesExist();
 
-  // Fetch data with error handling
   let subscribers: any[] = [];
-  let contactSubmissions: { id: number; name: string; email: string; company: string | null; message: string; createdAt: Date | null; isRead: string | null; }[] = [];
   let posts: any[] = [];
   let dbError = false;
 
   try {
     subscribers = await getSubscribers();
-    contactSubmissions = await getContactSubmissions();
     posts = await db
       .select()
       .from(blogPosts)
@@ -45,11 +39,6 @@ export default async function AdminPage() {
     console.error("Error fetching data:", error);
     dbError = true;
   }
-
-  // Count unread contact submissions
-  const unreadCount = contactSubmissions.filter(
-    (submission) => submission.isRead === "false"
-  ).length;
 
   return (
     <div className="flex flex-col">
@@ -61,12 +50,11 @@ export default async function AdminPage() {
                 Admin Dashboard
               </h1>
               <div className="max-w-[700px] text-gray-400 md:text-xl/relaxed">
-                Manage your subscribers, blog posts, and contact submissions.
+                Manage your subscribers and blog posts.
               </div>
             </div>
           </div>
         </div>
-        {/* Animated background */}
         <div className="absolute inset-0 bg-grid-white/5 bg-[size:50px_50px] opacity-10"></div>
         <div className="absolute inset-0 bg-black bg-opacity-80"></div>
       </section>
@@ -95,7 +83,7 @@ export default async function AdminPage() {
             </div>
           ) : (
             <>
-              <div className="grid gap-6 md:grid-cols-3 mb-12">
+              <div className="grid gap-6 md:grid-cols-2 mb-12">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
@@ -126,36 +114,11 @@ export default async function AdminPage() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Contact Messages
-                    </CardTitle>
-                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {contactSubmissions.length}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {unreadCount > 0 ? (
-                        <span className="flex items-center gap-2">
-                          <Badge variant="destructive">
-                            {unreadCount} unread
-                          </Badge>
-                        </span>
-                      ) : (
-                        "All messages read"
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
 
               <Tabs defaultValue="subscribers">
                 <TabsList className="mb-8">
                   <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
-                  <TabsTrigger value="contact">Contact Messages</TabsTrigger>
                   <TabsTrigger value="blog-posts">Blog Posts</TabsTrigger>
                 </TabsList>
                 <TabsContent value="subscribers">
@@ -189,62 +152,6 @@ export default async function AdminPage() {
                                 <TableCell>{subscriber.name || "—"}</TableCell>
                                 <TableCell>
                                   {formatDate(subscriber.createdAt)}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                <TabsContent value="contact">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Contact Messages</CardTitle>
-                      <CardDescription>
-                        View and manage contact form submissions.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {contactSubmissions.length === 0 ? (
-                        <div className="text-center py-6">
-                          <div className="text-muted-foreground">
-                            No contact submissions yet.
-                          </div>
-                        </div>
-                      ) : (
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Name</TableHead>
-                              <TableHead>Email</TableHead>
-                              <TableHead>Company</TableHead>
-                              <TableHead>Message</TableHead>
-                              <TableHead>Date</TableHead>
-                              <TableHead>Status</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {contactSubmissions.map((submission) => (
-                              <TableRow key={submission.id}>
-                                <TableCell>{submission.name}</TableCell>
-                                <TableCell>{submission.email}</TableCell>
-                                <TableCell>
-                                  {submission.company || "—"}
-                                </TableCell>
-                                <TableCell className="max-w-[200px] truncate">
-                                  {submission.message}
-                                </TableCell>
-                                <TableCell>
-                                  {formatDate(submission.createdAt)}
-                                </TableCell>
-                                <TableCell>
-                                  {submission.isRead === "false" ? (
-                                    <Badge variant="destructive">Unread</Badge>
-                                  ) : (
-                                    <Badge variant="outline">Read</Badge>
-                                  )}
                                 </TableCell>
                               </TableRow>
                             ))}
