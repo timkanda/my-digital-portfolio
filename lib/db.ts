@@ -37,6 +37,7 @@ export const subscribers = pgTable("subscribers", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name"),
+  role: text("role").default("user"), // Add a role column with a default value
   createdAt: timestamp("created_at").defaultNow(),
 });
 

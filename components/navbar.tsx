@@ -2,10 +2,10 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Shield, Menu, X, Database } from "lucide-react"
+import { Shield, Menu, X, Database, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   ClerkProvider,
   SignInButton,
@@ -13,12 +13,17 @@ import {
   SignedIn,
   SignedOut,
   UserButton,
+  useUser,
 } from '@clerk/nextjs'
+import { useAdmin } from "@/hooks/use-admin"
+
 export function Navbar() {
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { isAdmin, isLoading } = useAdmin()
 
-  const routes = [
+  // Define base routes available to all authenticated users
+  const baseRoutes = [
     {
       href: "/",
       label: "Home",
@@ -34,12 +39,24 @@ export function Navbar() {
       label: "Projects",
       active: pathname === "/projects",
     },
+  ]
+  
+  // Define admin routes only visible to admin users
+  const adminRoutes = [
     {
       href: "/admin",
       label: "Admin",
       active: pathname === "/admin",
+      icon: <Lock className="mr-1 h-4 w-4" />
     },
   ]
+  
+  // Combine routes based on admin status
+  const routes = isLoading 
+    ? baseRoutes 
+    : isAdmin 
+    ? [...baseRoutes, ...adminRoutes] 
+    : baseRoutes
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -68,17 +85,24 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
-        <SignedOut>
-              <SignInButton />
-              <SignUpButton />
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
+          <SignedOut>
+            <SignInButton />
+            <SignUpButton />
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
           <ThemeToggle />
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/admin">Admin Dashboard</Link>
-          </Button>
+          
+          {/* Only show Admin Dashboard button to admin users */}
+          {isAdmin && (
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/admin" className="flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                Admin Dashboard
+              </Link>
+            </Button>
+          )}
         </div>
 
         {/* Mobile menu button */}

@@ -1,4 +1,7 @@
 import { getSubscribers } from "@/app/actions/newsletter";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
 import {
   Card,
   CardContent,
@@ -6,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { UserRoleManagement } from "@/components/user-role-management";
 import {
   Table,
   TableBody,
@@ -17,20 +21,58 @@ import {
 import { formatDate } from "@/lib/utils";
 import { Users, FileText, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { db, blogPosts } from "@/lib/db";
+import { db, blogPosts, subscribers } from "@/lib/db";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ensureTablesExist } from "@/lib/db-init";
 
 export default async function AdminPage() {
+  // Get the current user
+  const user = await currentUser();
+  
+  // If no user is logged in, redirect to home page
+  if (!user || !user.emailAddresses || user.emailAddresses.length === 0) {
+    redirect("/");
+  }
+  
+  // Get primary email
+  const primaryEmailObj = user.emailAddresses.find(
+    email => email.id === user.primaryEmailAddressId
+  ) || user.emailAddresses[0];
+  
+  const email = primaryEmailObj.emailAddress;
+  
   await ensureTablesExist();
+  
+  // Check if the user exists in the database and has admin role
+  const userResults = await db
+    .select()
+    .from(subscribers)
+    .where(eq(subscribers.email, email))
+    .limit(1);
+  
+  // If user is not an admin, show access denied
+  if (userResults.length === 0 || userResults[0]?.role !== 'admin') {
+    return (
+      <div className="container mx-auto py-10">
+        <div className="bg-red-50 p-6 rounded-lg dark:bg-red-900/20">
+          <h1 className="text-2xl font-bold text-red-800 dark:text-red-300">Access Denied</h1>
+          <p className="mt-2 text-red-700 dark:text-red-300">
+            You don't have permission to access the admin dashboard.
+            Only users with admin role can view this page.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  let subscribers: any[] = [];
+  // Declare variables for data fetching after admin check
+  let subscribersList: any[] = [];
   let posts: any[] = [];
   let dbError = false;
 
   try {
-    subscribers = await getSubscribers();
+    subscribersList = await getSubscribers();
     posts = await db
       .select()
       .from(blogPosts)
@@ -93,7 +135,7 @@ export default async function AdminPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {subscribers.length}
+                      {subscribersList.length}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Total newsletter subscribers
@@ -120,6 +162,7 @@ export default async function AdminPage() {
                 <TabsList className="mb-8">
                   <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
                   <TabsTrigger value="blog-posts">Blog Posts</TabsTrigger>
+                  <TabsTrigger value="user-management">User Management</TabsTrigger>
                 </TabsList>
                 <TabsContent value="subscribers">
                   <Card>
@@ -130,7 +173,7 @@ export default async function AdminPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {subscribers.length === 0 ? (
+                      {subscribersList.length === 0 ? (
                         <div className="text-center py-6">
                           <div className="text-muted-foreground">
                             No subscribers yet.
@@ -146,7 +189,7 @@ export default async function AdminPage() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {subscribers.map((subscriber) => (
+                            {subscribersList.map((subscriber) => (
                               <TableRow key={subscriber.id}>
                                 <TableCell>{subscriber.email}</TableCell>
                                 <TableCell>{subscriber.name || "—"}</TableCell>
@@ -202,6 +245,11 @@ export default async function AdminPage() {
                       )}
                     </CardContent>
                   </Card>
+                </TabsContent>
+                <TabsContent value="user-management">
+                  <div className="max-w-lg mx-auto">
+                    <UserRoleManagement />
+                  </div>
                 </TabsContent>
               </Tabs>
             </>

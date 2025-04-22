@@ -5,6 +5,7 @@ import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { AuthSync } from "@/components/auth-sync"
 import { Toaster } from "@/components/ui/toaster"
 import {
   ClerkProvider,
@@ -31,6 +32,10 @@ export default function RootLayout({
     <ClerkProvider>
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        {/* Include AuthSync component for auto user role assignment */}
+        <SignedIn>
+          <AuthSync />
+        </SignedIn>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <div className="flex min-h-screen flex-col">
             <Navbar />

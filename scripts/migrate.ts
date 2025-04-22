@@ -42,6 +42,12 @@ async function main() {
     `)
     console.log("✅ Subscribers table created or already exists")
 
+    await db.execute(sql`
+      ALTER TABLE subscribers
+      ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
+    `);
+    console.log("✅ Role column added to subscribers table");
+
     // Create the blog_posts table if it doesn't exist
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS blog_posts (

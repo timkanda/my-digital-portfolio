@@ -34,9 +34,23 @@ export async function ensureTablesExist() {
           id SERIAL PRIMARY KEY,
           email TEXT NOT NULL UNIQUE,
           name TEXT,
+          role TEXT DEFAULT 'user',
           created_at TIMESTAMP DEFAULT NOW()
         )
       `)
+    } else {
+      console.log("Tables exist, ensuring role column exists in subscribers table...")
+      
+      // Add role column to subscribers table if it doesn't exist
+      try {
+        await db.execute(sql`
+          ALTER TABLE subscribers
+          ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
+        `);
+        console.log("Role column added or already exists in subscribers table");
+      } catch (error) {
+        console.error("Error adding role column:", error);
+      }
 
       // Create the blog_posts table if it doesn't exist
       await db.execute(sql`
@@ -71,8 +85,6 @@ export async function ensureTablesExist() {
 
       // Insert sample data
       await insertSampleData()
-    } else {
-      console.log("Tables already exist")
     }
 
     return true
