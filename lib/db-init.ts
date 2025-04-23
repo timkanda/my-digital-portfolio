@@ -54,7 +54,6 @@ export async function ensureTablesExist() {
     } else {
       console.log("Tables exist, updating schema...")
       
-      
       console.log("Now checking users table exists...")
       
       // Ensure users table exists
@@ -87,6 +86,19 @@ export async function ensureTablesExist() {
           cover_image TEXT,
           author TEXT NOT NULL,
           read_time TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `)
+
+      // Create the projects table if it doesn't exist
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS projects (
+          id SERIAL PRIMARY KEY,
+          title TEXT NOT NULL,
+          description TEXT NOT NULL,
+          icon TEXT NOT NULL,
+          items JSONB NOT NULL,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
         )
@@ -167,6 +179,118 @@ async function insertSampleData() {
       `)
 
       console.log("Sample subscribers inserted")
+    }
+
+    // Check if projects table is empty
+    const projectsCheck = await db.execute(sql`SELECT COUNT(*) FROM projects`)
+    const projectsCount = Number.parseInt(String(projectsCheck.rows[0]?.count || "0"))
+
+    if (projectsCount === 0) {
+      console.log("Inserting sample projects...")
+
+      // Insert penetration testing project
+      await db.execute(sql`
+        INSERT INTO projects (title, description, icon, items)
+        VALUES (
+          'Penetration Testing',
+          'Identify vulnerabilities before attackers do with our comprehensive penetration testing services.',
+          'AlertTriangle',
+          ${JSON.stringify([
+            "Web Application Testing",
+            "Network Infrastructure Testing",
+            "Mobile Application Testing",
+            "Social Engineering Assessments",
+            "IoT Device Security Testing",
+          ])}
+        )
+      `)
+
+      // Insert security audits project
+      await db.execute(sql`
+        INSERT INTO projects (title, description, icon, items)
+        VALUES (
+          'Security Audits',
+          'Comprehensive assessment of your security posture against industry standards and best practices.',
+          'Shield',
+          ${JSON.stringify([
+            "Compliance Assessments",
+            "Security Architecture Review",
+            "Cloud Security Assessment",
+            "Risk Assessment",
+            "Security Policy Review",
+          ])}
+        )
+      `)
+
+      // Insert security training project
+      await db.execute(sql`
+        INSERT INTO projects (title, description, icon, items)
+        VALUES (
+          'Security Training',
+          'Empower your team with the knowledge to recognize and respond to security threats.',
+          'FileCode',
+          ${JSON.stringify([
+            "Security Awareness Training",
+            "Phishing Simulations",
+            "Developer Security Training",
+            "Incident Response Drills",
+            "Executive Security Briefings",
+          ])}
+        )
+      `)
+
+      // Insert incident response project
+      await db.execute(sql`
+        INSERT INTO projects (title, description, icon, items)
+        VALUES (
+          'Incident Response',
+          'Rapid and effective response to security incidents to minimize damage and recovery time.',
+          'Lock',
+          ${JSON.stringify([
+            "24/7 Incident Response",
+            "Malware Analysis",
+            "Digital Forensics",
+            "Breach Containment",
+            "Post-Incident Analysis",
+          ])}
+        )
+      `)
+
+      // Insert cloud security project
+      await db.execute(sql`
+        INSERT INTO projects (title, description, icon, items)
+        VALUES (
+          'Cloud Security',
+          'Secure your cloud infrastructure and applications with our specialized cloud security services.',
+          'Server',
+          ${JSON.stringify([
+            "Cloud Security Architecture",
+            "Cloud Configuration Review",
+            "Container Security",
+            "Serverless Security",
+            "Cloud Security Monitoring",
+          ])}
+        )
+      `)
+
+      // Insert security consulting project
+      await db.execute(sql`
+        INSERT INTO projects (title, description, icon, items)
+        VALUES (
+          'Security Consulting',
+          'Expert guidance on cybersecurity strategy, architecture, and best practices.',
+          'Users',
+          ${JSON.stringify([
+            "Security Program Development",
+            "Security Architecture Design",
+            "Compliance Consulting",
+            "Security Tool Selection",
+            "CISO as a Service",
+          ])}
+        )
+      `)
+
+      console.log("Sample projects inserted")
     }
   } catch (error) {
     console.error("Error inserting sample data:", error)

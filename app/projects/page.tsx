@@ -1,9 +1,75 @@
 import { Shield, AlertTriangle, FileCode, Lock, Server, Users } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import ClientProjectAdmin from "@/components/client-project-admin"
+import { getProjects } from "@/app/actions/projects"
 
-export default function ServicesPage() {
+// Define the type for a project
+type Project = {
+  id: number
+  title: string
+  description: string
+  icon: string
+  items: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+// Map icon strings to Lucide components
+const iconMap = {
+  AlertTriangle: AlertTriangle,
+  Shield: Shield,
+  FileCode: FileCode,
+  Lock: Lock,
+  Server: Server,
+  Users: Users
+}
+
+// Sample fallback data to use during build
+const fallbackProjects = [
+  {
+    id: 1,
+    title: "Penetration Testing",
+    description: "Identify vulnerabilities before attackers do with our comprehensive penetration testing services.",
+    icon: "AlertTriangle",
+    items: [
+      "Web Application Testing",
+      "Network Infrastructure Testing",
+      "Mobile Application Testing",
+      "Social Engineering Assessments",
+      "IoT Device Security Testing",
+    ],
+    createdAt: "",
+    updatedAt: ""
+  },
+  {
+    id: 2,
+    title: "Security Audits",
+    description: "Comprehensive assessment of your security posture against industry standards and best practices.",
+    icon: "Shield",
+    items: [
+      "Compliance Assessments",
+      "Security Architecture Review",
+      "Cloud Security Assessment",
+      "Risk Assessment",
+      "Security Policy Review",
+    ],
+    createdAt: "",
+    updatedAt: ""
+  },
+  // Add more fallback projects if needed
+];
+export default async function ProjectsPage() {
+  // Fetch projects using the server action
+  const result = await getProjects();
+  
+  // Use the fetched projects or fallback to sample data if there was an error
+  // Ensure projects is always defined with fallback data if needed
+  const projects = (result.success && result.projects) ? result.projects : fallbackProjects;
+  
   return (
     <div className="flex flex-col">
+      {/* Admin section for adding new projects - only visible to admins */}
+      <ClientProjectAdmin />
       <section className="w-full py-12 md:py-24 lg:py-32 bg-black relative overflow-hidden">
         <div className="container px-4 md:px-6 relative z-10">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
@@ -22,98 +88,32 @@ export default function ServicesPage() {
       <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
         <div className="container px-4 md:px-6">
           <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                icon: <AlertTriangle className="h-8 w-8 text-primary" />,
-                title: "Penetration Testing",
-                description: "Identify vulnerabilities before attackers do with our comprehensive penetration testing services.",
-                items: [
-                  "Web Application Testing",
-                  "Network Infrastructure Testing",
-                  "Mobile Application Testing",
-                  "Social Engineering Assessments",
-                  "IoT Device Security Testing",
-                ],
-              },
-              {
-                icon: <Shield className="h-8 w-8 text-primary" />,
-                title: "Security Audits",
-                description: "Comprehensive assessment of your security posture against industry standards and best practices.",
-                items: [
-                  "Compliance Assessments",
-                  "Security Architecture Review",
-                  "Cloud Security Assessment",
-                  "Risk Assessment",
-                  "Security Policy Review",
-                ],
-              },
-              {
-                icon: <FileCode className="h-8 w-8 text-primary" />,
-                title: "Security Training",
-                description: "Empower your team with the knowledge to recognize and respond to security threats.",
-                items: [
-                  "Security Awareness Training",
-                  "Phishing Simulations",
-                  "Developer Security Training",
-                  "Incident Response Drills",
-                  "Executive Security Briefings",
-                ],
-              },
-              {
-                icon: <Lock className="h-8 w-8 text-primary" />,
-                title: "Incident Response",
-                description: "Rapid and effective response to security incidents to minimize damage and recovery time.",
-                items: [
-                  "24/7 Incident Response",
-                  "Malware Analysis",
-                  "Digital Forensics",
-                  "Breach Containment",
-                  "Post-Incident Analysis",
-                ],
-              },
-              {
-                icon: <Server className="h-8 w-8 text-primary" />,
-                title: "Cloud Security",
-                description: "Secure your cloud infrastructure and applications with our specialized cloud security services.",
-                items: [
-                  "Cloud Security Architecture",
-                  "Cloud Configuration Review",
-                  "Container Security",
-                  "Serverless Security",
-                  "Cloud Security Monitoring",
-                ],
-              },
-              {
-                icon: <Users className="h-8 w-8 text-primary" />,
-                title: "Security Consulting",
-                description: "Expert guidance on cybersecurity strategy, architecture, and best practices.",
-                items: [
-                  "Security Program Development",
-                  "Security Architecture Design",
-                  "Compliance Consulting",
-                  "Security Tool Selection",
-                  "CISO as a Service",
-                ],
-              },
-            ].map((service, idx) => (
-              <Card key={idx} className="bg-background border-primary/20">
-                <CardHeader>
-                  <div className="bg-primary/10 p-3 w-fit rounded-lg mb-4">{service.icon}</div>
-                  <CardTitle>{service.title}</CardTitle>
-                  <CardDescription>{service.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 mb-6">
-                    {service.items.map((item, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-primary" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
+            {projects.map((project, idx) => {
+              // Get the icon component from the icon map
+              const IconComponent = iconMap[project.icon as keyof typeof iconMap] || Shield
+              
+              return (
+                <Card key={idx} className="bg-background border-primary/20">
+                  <CardHeader>
+                    <div className="bg-primary/10 p-3 w-fit rounded-lg mb-4">
+                      <IconComponent className="h-8 w-8 text-primary" />
+                    </div>
+                    <CardTitle>{project.title}</CardTitle>
+                    <CardDescription>{project.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2 mb-6">
+                      {(project.items as string[]).map((item, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-primary" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </div>
       </section>

@@ -22,7 +22,7 @@ import { formatDate } from "@/lib/utils";
 import { Users, FileText, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { db, blogPosts, users } from "@/lib/db";
-import { isAdmin } from "@/lib/auth";
+import { checkAdminStatus } from "@/app/actions/admin";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ensureTablesExist } from "@/lib/db-init";
@@ -45,8 +45,9 @@ export default async function AdminPage() {
   
   await ensureTablesExist();
   
-  // Check if the user is an admin
-  const adminStatus = await isAdmin();
+  // Check if the user is an admin using the server action
+  const adminResponse = await checkAdminStatus();
+  const adminStatus = adminResponse.isAdmin;
   
   // If user is not an admin, show access denied
   if (!adminStatus) {

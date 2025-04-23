@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { BadgeCheck, Shield, Crown } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { getUsers, setUserRole } from "@/app/actions/admin";
 
 interface User {
   id: number;
@@ -22,21 +23,30 @@ interface User {
 
 export function UserRoleManagement() {
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("user");
+  const [role, setRole] = useState<"user" | "admin">("user");
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   
-  // Fetch users when component mounts
+  // Fetch users when component mounts using server action
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const response = await fetch("/api/admin/get-users");
-        if (response.ok) {
-          const data = await response.json();
-          setUsers(data);
+        const result = await getUsers();
+        
+        if (result.success && result.users) {
+          // Map the user data to match our interface
+          const formattedUsers = result.users.map(user => ({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            isFirstUser: user.isFirstUser || false,
+            createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString()
+          }));
+          setUsers(formattedUsers);
         } else {
-          console.error("Failed to load users");
+          console.error("Failed to load users:", result.error);
         }
       } catch (error) {
         console.error("Error loading users:", error);
@@ -63,18 +73,11 @@ export function UserRoleManagement() {
     setIsLoading(true);
     
     try {
-      const response = await fetch("/api/admin/set-role", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, role }),
-      });
+      // Use server action instead of fetch API
+      const result = await setUserRole(email, role);
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update user role");
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update user role");
       }
       
       toast({
@@ -128,7 +131,7 @@ export function UserRoleManagement() {
               </label>
               <Select
                 value={role}
-                onValueChange={setRole}
+                onValueChange={(value: string) => setRole(value as "user" | "admin")}
               >
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Select a role" />

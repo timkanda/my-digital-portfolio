@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { RunMigrationButton } from "./run-migration-button"
+import { testDatabaseConnection } from "@/app/actions/database"
 
 export default function DbTestPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
@@ -14,10 +15,10 @@ export default function DbTestPage() {
   const testConnection = async () => {
     setStatus("loading")
     try {
-      const res = await fetch("/api/test-db")
-      const data = await res.json()
+      // Use server action instead of fetch API
+      const data = await testDatabaseConnection()
 
-      if (!res.ok) {
+      if (!data.success) {
         throw new Error(data.message || "Failed to connect to the database")
       }
 
