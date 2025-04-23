@@ -1,22 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+"use server";
+
 import { syncUserWithDatabase } from "@/lib/auth";
 import { currentUser } from "@clerk/nextjs/server";
 
 /**
- * API endpoint that syncs the current user with our database
- * This handles the automatic admin assignment to the first user
+ * Server action to sync the current Clerk user with our database
+ * Replaces the POST /api/auth/sync-user endpoint
+ * This handles automatic admin assignment to the first user
  */
-export async function POST(request: NextRequest) {
+export async function syncUser() {
   try {
     // Get the current authenticated user from Clerk
     const user = await currentUser();
     
     // If no user is authenticated, return error
     if (!user || !user.emailAddresses || user.emailAddresses.length === 0) {
-      return NextResponse.json(
-        { error: "No authenticated user found" },
-        { status: 401 }
-      );
+      return {
+        success: false,
+        error: "No authenticated user found"
+      };
     }
     
     // Get the user's primary email
@@ -31,7 +33,7 @@ export async function POST(request: NextRequest) {
     const dbUser = await syncUserWithDatabase(email, name);
     
     // Return the user data with role information
-    return NextResponse.json({
+    return {
       success: true,
       user: {
         id: dbUser.id,
@@ -40,12 +42,12 @@ export async function POST(request: NextRequest) {
         role: dbUser.role,
         isAdmin: dbUser.role === 'admin'
       }
-    });
+    };
   } catch (error) {
     console.error("Error syncing user:", error);
-    return NextResponse.json(
-      { error: "Failed to sync user data" },
-      { status: 500 }
-    );
+    return {
+      success: false,
+      error: "Failed to sync user data"
+    };
   }
 }

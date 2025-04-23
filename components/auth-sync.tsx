@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
+import { syncUser } from "@/app/actions/auth";
 
 /**
  * AuthSync component
@@ -18,18 +19,13 @@ export function AuthSync() {
       return;
     }
 
-    // Sync user data with our database through API
-    const syncUser = async () => {
+    // Sync user data with our database through server action
+    const handleUserSync = async () => {
       try {
-        const response = await fetch("/api/auth/sync-user", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          console.error("Failed to sync user data");
+        const result = await syncUser();
+        
+        if (!result.success) {
+          console.error("Failed to sync user data:", result.error);
         }
       } catch (error) {
         console.error("Error syncing user:", error);
@@ -37,7 +33,7 @@ export function AuthSync() {
     };
 
     // Call sync when component mounts and user is signed in
-    syncUser();
+    handleUserSync();
   }, [isLoaded, isSignedIn, user]);
 
   // This is a background component, it doesn't render anything

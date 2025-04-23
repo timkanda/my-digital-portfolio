@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
+import { checkAdminStatus } from "@/app/actions/admin";
 
 /**
  * Custom hook to check if the current user has admin privileges
@@ -13,7 +14,7 @@ export function useAdmin() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function checkAdminStatus() {
+    async function checkAdmin() {
       if (!isLoaded || !isSignedIn) {
         setIsAdmin(false);
         setIsLoading(false);
@@ -21,14 +22,9 @@ export function useAdmin() {
       }
 
       try {
-        const response = await fetch("/api/check-admin");
-        if (response.ok) {
-          const data = await response.json();
-          setIsAdmin(data.isAdmin);
-        } else {
-          console.error("Failed to check admin status");
-          setIsAdmin(false);
-        }
+        // Use server action instead of API fetch
+        const result = await checkAdminStatus();
+        setIsAdmin(result.isAdmin);
       } catch (error) {
         console.error("Error checking admin status:", error);
         setIsAdmin(false);
@@ -37,7 +33,7 @@ export function useAdmin() {
       }
     }
 
-    checkAdminStatus();
+    checkAdmin();
   }, [isLoaded, isSignedIn]);
 
   return { isAdmin, isLoading };

@@ -1,6 +1,7 @@
 import { Shield, AlertTriangle, FileCode, Lock, Server, Users } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import ProjectAdminSection from "@/components/project-admin-section"
+import ClientProjectAdmin from "@/components/client-project-admin"
+import { getProjects } from "@/app/actions/projects"
 
 // Define the type for a project
 type Project = {
@@ -23,33 +24,52 @@ const iconMap = {
   Users: Users
 }
 
-// Get projects from the API
-async function getProjects(): Promise<Project[]> {
-  try {
-    // Use server-side fetch for the API call
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/projects`, {
-      cache: 'no-store'
-    })
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch projects')
-    }
-    
-    const data = await response.json()
-    return data.projects
-  } catch (error) {
-    console.error('Error loading projects:', error)
-    return []
-  }
-}
-
+// Sample fallback data to use during build
+const fallbackProjects = [
+  {
+    id: 1,
+    title: "Penetration Testing",
+    description: "Identify vulnerabilities before attackers do with our comprehensive penetration testing services.",
+    icon: "AlertTriangle",
+    items: [
+      "Web Application Testing",
+      "Network Infrastructure Testing",
+      "Mobile Application Testing",
+      "Social Engineering Assessments",
+      "IoT Device Security Testing",
+    ],
+    createdAt: "",
+    updatedAt: ""
+  },
+  {
+    id: 2,
+    title: "Security Audits",
+    description: "Comprehensive assessment of your security posture against industry standards and best practices.",
+    icon: "Shield",
+    items: [
+      "Compliance Assessments",
+      "Security Architecture Review",
+      "Cloud Security Assessment",
+      "Risk Assessment",
+      "Security Policy Review",
+    ],
+    createdAt: "",
+    updatedAt: ""
+  },
+  // Add more fallback projects if needed
+];
 export default async function ProjectsPage() {
-  const projects = await getProjects()
+  // Fetch projects using the server action
+  const result = await getProjects();
+  
+  // Use the fetched projects or fallback to sample data if there was an error
+  // Ensure projects is always defined with fallback data if needed
+  const projects = (result.success && result.projects) ? result.projects : fallbackProjects;
   
   return (
     <div className="flex flex-col">
       {/* Admin section for adding new projects - only visible to admins */}
-      <ProjectAdminSection />
+      <ClientProjectAdmin />
       <section className="w-full py-12 md:py-24 lg:py-32 bg-black relative overflow-hidden">
         <div className="container px-4 md:px-6 relative z-10">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">

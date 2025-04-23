@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { createProject } from "@/app/actions/projects";
 
 // Map of available icons for projects
 const availableIcons = {
@@ -60,24 +61,16 @@ export default function AddProjectForm({ onProjectAdded }: { onProjectAdded: () 
     try {
       setIsSubmitting(true);
       
-      const response = await fetch("/api/projects", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include", // Include credentials (cookies) in the request
-        body: JSON.stringify({
-          title,
-          description,
-          icon: selectedIcon,
-          items
-        })
+      // Use server action instead of fetch API
+      const result = await createProject({
+        title,
+        description,
+        icon: selectedIcon,
+        items
       });
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create project");
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create project");
       }
       
       // Reset form

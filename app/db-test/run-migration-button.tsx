@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, XCircle, Database } from "lucide-react"
+import { runDatabaseMigration } from "@/app/actions/migration"
 
 export function RunMigrationButton() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
@@ -13,10 +14,8 @@ export function RunMigrationButton() {
     setError(null)
 
     try {
-      const response = await fetch("/api/run-migration", {
-        method: "POST",
-      })
-      const result = await response.json()
+      // Use server action instead of fetch API
+      const result = await runDatabaseMigration()
 
       if (result.success) {
         setStatus("success")
