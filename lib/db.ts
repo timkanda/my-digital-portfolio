@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { boolean, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, pgTable, serial, text, timestamp, varchar, json } from "drizzle-orm/pg-core";
 
 // Determine the database connection string
 let connectionString: string;
@@ -62,6 +62,17 @@ export const blogPosts = pgTable("blog_posts", {
   coverImage: text("cover_image"),
   author: text("author").notNull(),
   readTime: text("read_time"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Define the projects table schema
+export const projects = pgTable("projects", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon").notNull(), // Store the icon name as a string
+  items: json("items").notNull(), // Store items as a JSON array
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
