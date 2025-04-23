@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { AlertTriangle, FileCode, Lock, Server, Shield, Users, Plus, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { createProject } from "@/app/actions/projects";
+import { useActionState } from "react";
+import { Project } from "@/lib/types";
 
-// Map of available icons for projects
-const availableIcons = {
+/**
+ * A record mapping icon identifiers to their display names.
+ * These icons correspond to Lucide icon components used in the application.
+ * 
+ * @type {Record<string, string>} - Key is the icon identifier, value is the display name
+ */
+const availableIcons: Record<string, string> = {
   AlertTriangle: "Alert Triangle",
   Shield: "Shield",
   FileCode: "File Code",
@@ -20,60 +27,64 @@ const availableIcons = {
   Users: "Users"
 };
 
-export default function AddProjectForm({ onProjectAdded }: { onProjectAdded: () => void }) {
+/**
+ * Props for the AddProjectForm component
+ * 
+ * @interface AddProjectFormProps
+ * @property {() => void} onProjectAdded - Callback function triggered when a project is successfully added
+ */
+interface AddProjectFormProps {
+  onProjectAdded: () => void;
+}
+
+/**
+ * Initial state for the project creation action
+ * 
+ * @interface ProjectActionState
+ * @property {boolean} success - Indicates if the operation was successful
+ * @property {string} message - Success or error message from the operation
+ * @property {Project | null} project - The newly created project or null on failure
+ */
+interface ProjectActionState {
+  success: boolean;
+  message: string;
+  project: Project | null;
+}
+
+/**
+ * A form component that allows admins to create new projects.
+ * Provides input fields for project details and dynamically manages an array of items.
+ * Uses React 19's useActionState for handling server actions with proper state management.
+ * 
+ * @param {AddProjectFormProps} props - Component props
+ * @returns {React.ReactElement} The rendered form component
+ */
+export default function AddProjectForm({ onProjectAdded }: AddProjectFormProps): React.ReactElement {
   const { toast } = useToast();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [selectedIcon, setSelectedIcon] = useState("");
+  const [title, setTitle] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [selectedIcon, setSelectedIcon] = useState<string>("");
   const [items, setItems] = useState<string[]>([]);
-  const [newItem, setNewItem] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [newItem, setNewItem] = useState<string>("");
+  const [isFormVisible, setIsFormVisible] = useState<boolean>(false);
 
-  const toggleForm = () => {
-    setIsFormVisible(!isFormVisible);
+  // Using the useActionState hook for server action state management
+  const initialState: ProjectActionState = {
+    success: false,
+    message: "",
+    project: null
   };
+  
+  const [state, formAction] = useActionState(createProject, initialState);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const addItem = () => {
-    if (newItem.trim() !== "") {
-      setItems([...items, newItem.trim()]);
-      setNewItem("");
-    }
-  };
-
-  const removeItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate form
-    if (!title.trim() || !description.trim() || !selectedIcon || items.length === 0) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all fields and add at least one item.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      setIsSubmitting(true);
-      
-      // Use server action instead of fetch API
-      const result = await createProject({
-        title,
-        description,
-        icon: selectedIcon,
-        items
-      });
-      
-      if (!result.success) {
-        throw new Error(result.error || "Failed to create project");
-      }
-      
-      // Reset form
+  /**
+   * Effect hook to handle state changes from the server action
+   * Manages form reset, success/error toast notifications, and parent component updates
+   */
+  useEffect(() => {
+    if (state?.success) {
+      // Reset form on success
       setTitle("");
       setDescription("");
       setSelectedIcon("");
@@ -83,21 +94,74 @@ export default function AddProjectForm({ onProjectAdded }: { onProjectAdded: () 
       // Show success message
       toast({
         title: "Success",
-        description: "Project created successfully",
+        description: state.message || "Project created successfully",
       });
       
       // Notify parent component to refresh projects
       onProjectAdded();
-    } catch (error) {
-      console.error("Error creating project:", error);
+    } else if (state?.message) {
+      // Show error message if there's a message but success is false
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create project",
+        description: state.message,
         variant: "destructive"
       });
-    } finally {
-      setIsSubmitting(false);
     }
+  }, [state, toast, onProjectAdded]); // Added missing closing bracket for dependency array
+
+  /**
+   * Toggles the visibility of the form
+   */
+  const toggleForm = (): void => {
+    setIsFormVisible(!isFormVisible);
+  };
+
+  /**
+   * Adds a new item to the items array if it's not empty
+   * Trims whitespace and resets the input field after adding
+   */
+  const addItem = (): void => {
+    if (newItem.trim() !== "") {
+      setItems([...items, newItem.trim()]);
+      setNewItem("");
+    }
+  };
+
+  /**
+   * Removes an item from the items array at the specified index
+   * 
+   * @param {number} index - The index of the item to remove
+   */
+  const removeItem = (index: number): void => {
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  /**
+   * Handles form submission with client-side validation
+   * Converts items array to JSON string and appends to FormData
+   * 
+   * @param {FormData} formData - The form data captured by the form action
+   */
+  const handleFormSubmit = async (formData: FormData): Promise<void> => {
+    // Client-side validation before submission
+    if (!title.trim() || !description.trim() || !selectedIcon || items.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all fields and add at least one item.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Add items as JSON string to FormData since FormData doesn't support arrays directly
+    formData.append('items', JSON.stringify(items));
+
+    // Using formAction from useActionState
+    await formAction(formData);
+
+    setIsSubmitting(false);
   };
   
   return (
@@ -113,11 +177,13 @@ export default function AddProjectForm({ onProjectAdded }: { onProjectAdded: () 
             <CardDescription>Create a new project to showcase your services</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Using the form action with the handleFormSubmit wrapper */}
+            <form action={handleFormSubmit} className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="title" className="text-sm font-medium">Title</label>
                 <Input 
                   id="title"
+                  name="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., Penetration Testing"
@@ -129,6 +195,7 @@ export default function AddProjectForm({ onProjectAdded }: { onProjectAdded: () 
                 <label htmlFor="description" className="text-sm font-medium">Description</label>
                 <Textarea 
                   id="description"
+                  name="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Brief description of the project"
@@ -139,7 +206,7 @@ export default function AddProjectForm({ onProjectAdded }: { onProjectAdded: () 
               
               <div className="space-y-2">
                 <label htmlFor="icon" className="text-sm font-medium">Icon</label>
-                <Select value={selectedIcon} onValueChange={setSelectedIcon}>
+                <Select value={selectedIcon} onValueChange={setSelectedIcon} name="icon">
                   <SelectTrigger>
                     <SelectValue placeholder="Select an icon" />
                   </SelectTrigger>
@@ -188,7 +255,6 @@ export default function AddProjectForm({ onProjectAdded }: { onProjectAdded: () 
                   </div>
                 )}
               </div>
-              
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Creating..." : "Create Project"}
               </Button>

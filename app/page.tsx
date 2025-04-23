@@ -7,12 +7,8 @@ import { NewsletterForm } from "@/components/newsletter-form"
 import { db, blogPosts } from "@/lib/db"
 import { formatDate } from "@/lib/utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ensureTablesExist } from "@/lib/db-init"
 
 export default async function Home() {
-  // Ensure database tables exist before querying
-  await ensureTablesExist()
-
   // Fetch the latest 3 blog posts with error handling
   let latestPosts: { id: string; slug: string; title: string; excerpt: string; coverImage?: string; createdAt: string }[] = []
   let dbError = false
@@ -191,7 +187,7 @@ export default async function Home() {
                   15+ Years of Cybersecurity Expertise
                 </h2>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed">
-                  With extensive experience in the cybersecurity industry, I've helped organizations of all sizes
+                  With extensive experience in the cybersecurity industry, I&apos;ve helped organizations of all sizes
                   protect their digital assets and infrastructure.
                 </p>
               </div>

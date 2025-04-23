@@ -24,7 +24,12 @@ export function useAdmin() {
       try {
         // Use server action instead of API fetch
         const result = await checkAdminStatus();
-        setIsAdmin(result.isAdmin);
+        // Extract isAdmin from the correct location in the response
+        if (result.status === "success" && result.data) {
+          setIsAdmin(result.data.isAdmin);
+        } else {
+          setIsAdmin(false);
+        }
       } catch (error) {
         console.error("Error checking admin status:", error);
         setIsAdmin(false);

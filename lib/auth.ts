@@ -1,4 +1,5 @@
 import { db, subscribers, users } from "@/lib/db";
+import { User } from "@/lib/types";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, sql } from "drizzle-orm";
 
@@ -81,7 +82,7 @@ export async function getCurrentUser() {
  * @param name User name (optional)
  * @returns The user record
  */
-export async function syncUserWithDatabase(email: string, name: string = ''): Promise<any> {
+export async function syncUserWithDatabase(email: string, name: string = ''): Promise<User | null> {
   try {
     if (!email) {
       throw new Error("Email is required");

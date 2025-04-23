@@ -8,13 +8,9 @@ import { eq } from "drizzle-orm"
 import { formatDate } from "@/lib/utils"
 import { notFound } from "next/navigation"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ensureTablesExist } from "@/lib/db-init"
 
 async function getBlogPost(slug: string) {
   try {
-    // Ensure database tables exist before querying
-    await ensureTablesExist()
-
     const post = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug)).limit(1)
     return { post: post[0] || null, error: null }
   } catch (error) {

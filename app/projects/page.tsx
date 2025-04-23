@@ -3,17 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import ClientProjectAdmin from "@/components/client-project-admin"
 import { getProjects } from "@/app/actions/projects"
 
-// Define the type for a project
-type Project = {
-  id: number
-  title: string
-  description: string
-  icon: string
-  items: string[]
-  createdAt: string
-  updatedAt: string
-}
-
 // Map icon strings to Lucide components
 const iconMap = {
   AlertTriangle: AlertTriangle,
@@ -24,48 +13,12 @@ const iconMap = {
   Users: Users
 }
 
-// Sample fallback data to use during build
-const fallbackProjects = [
-  {
-    id: 1,
-    title: "Penetration Testing",
-    description: "Identify vulnerabilities before attackers do with our comprehensive penetration testing services.",
-    icon: "AlertTriangle",
-    items: [
-      "Web Application Testing",
-      "Network Infrastructure Testing",
-      "Mobile Application Testing",
-      "Social Engineering Assessments",
-      "IoT Device Security Testing",
-    ],
-    createdAt: "",
-    updatedAt: ""
-  },
-  {
-    id: 2,
-    title: "Security Audits",
-    description: "Comprehensive assessment of your security posture against industry standards and best practices.",
-    icon: "Shield",
-    items: [
-      "Compliance Assessments",
-      "Security Architecture Review",
-      "Cloud Security Assessment",
-      "Risk Assessment",
-      "Security Policy Review",
-    ],
-    createdAt: "",
-    updatedAt: ""
-  },
-  // Add more fallback projects if needed
-];
 export default async function ProjectsPage() {
-  // Fetch projects using the server action
-  const result = await getProjects();
-  
-  // Use the fetched projects or fallback to sample data if there was an error
-  // Ensure projects is always defined with fallback data if needed
-  const projects = (result.success && result.projects) ? result.projects : fallbackProjects;
-  
+  // Fetch projects directly using the server action.
+  // Error handling can be added here if needed (e.g., display an error message)
+  // but the fallback logic is removed per the request.
+  const projects = await getProjects(); 
+
   return (
     <div className="flex flex-col">
       {/* Admin section for adding new projects - only visible to admins */}
@@ -88,12 +41,14 @@ export default async function ProjectsPage() {
       <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
         <div className="container px-4 md:px-6">
           <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project, idx) => {
-              // Get the icon component from the icon map
-              const IconComponent = iconMap[project.icon as keyof typeof iconMap] || Shield
+            {/* Ensure projects is an array before mapping */}
+            {Array.isArray(projects) && projects.map((project) => {
+              // Type guard for items remains useful if the action could potentially return non-array items
+              if (!Array.isArray(project.items)) return null; 
+              const IconComponent = iconMap[project.icon as keyof typeof iconMap] || Shield; 
               
               return (
-                <Card key={idx} className="bg-background border-primary/20">
+                <Card key={project.id} className="bg-background border-primary/20">
                   <CardHeader>
                     <div className="bg-primary/10 p-3 w-fit rounded-lg mb-4">
                       <IconComponent className="h-8 w-8 text-primary" />
@@ -103,7 +58,7 @@ export default async function ProjectsPage() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2 mb-6">
-                      {(project.items as string[]).map((item, i) => (
+                      {project.items.map((item, i) => ( 
                         <li key={i} className="flex items-center gap-2">
                           <Shield className="h-4 w-4 text-primary" />
                           <span>{item}</span>

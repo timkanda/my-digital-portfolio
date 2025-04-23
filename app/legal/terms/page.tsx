@@ -1,9 +1,6 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-
 export default function TermsOfServicePage() {
   return (
-    <div className="flex flex-col">
+    <div className="container mx-auto px-4 py-12 max-w-4xl">
       <section className="w-full py-12 md:py-24 lg:py-32 bg-black relative overflow-hidden">
         <div className="container px-4 md:px-6 relative z-10">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
@@ -27,12 +24,11 @@ export default function TermsOfServicePage() {
               <h2 className="text-2xl font-bold">Introduction</h2>
               <p className="text-muted-foreground">Last Updated: April 22, 2025</p>
               <p>
-                These Terms of Service ("Terms") govern your access to and use of the CyberShield website and services.
+                These Terms of Service (&quot;Terms&quot;) govern your access to and use of the CyberShield website and services.
                 Please read these Terms carefully before using our services.
               </p>
-              <p>
-                By accessing or using our services, you agree to be bound by these Terms. If you disagree with any part
-                of the Terms, then you may not access our services.
+              <p className="mb-4">
+                By accessing or using the Service, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Service. Your access to and use of the Service is conditioned on your acceptance of and compliance with these Terms. These Terms apply to all visitors, users, and others who access or use the Service. We reserve the right to update or modify these Terms at any time without prior notice. Your continued use of the Service after any such changes constitutes your acceptance of the new Terms. Please review this page periodically for updates. The terms &quot;we&quot;, &quot;us&quot;, and &quot;our&quot; refer to CyberApp Inc.
               </p>
             </div>
 
@@ -117,13 +113,7 @@ export default function TermsOfServicePage() {
             <div className="space-y-4">
               <h2 className="text-2xl font-bold">Governing Law</h2>
               <p>
-                These Terms shall be governed and construed in accordance with the laws of the United States, without
-                regard to its conflict of law provisions.
-              </p>
-              <p>
-                Our failure to enforce any right or provision of these Terms will not be considered a waiver of those
-                rights. If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining
-                provisions of these Terms will remain in effect.
+                These Terms shall be governed and construed in accordance with the laws of the State of California, United States, without regard to its conflict of law provisions. Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights. If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining provisions of these Terms will remain in effect. These Terms constitute the entire agreement between us regarding our Service and supersede and replace any prior agreements we might have had between us regarding the Service. Any disputes arising under these Terms will be resolved in the state or federal courts located in San Francisco County, California, and you consent to the exclusive jurisdiction of these courts. We don&apos;t anticipate disputes, but this clarifies the process.
               </p>
             </div>
 
@@ -131,7 +121,7 @@ export default function TermsOfServicePage() {
               <h2 className="text-2xl font-bold">Changes to Terms</h2>
               <p>
                 We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a
-                revision is material, we will try to provide at least 30 days' notice prior to any new terms taking
+                revision is material, we will try to provide at least 30 days&apos; notice prior to any new terms taking
                 effect.
               </p>
               <p>
@@ -159,5 +149,5 @@ export default function TermsOfServicePage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

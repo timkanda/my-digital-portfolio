@@ -7,49 +7,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BadgeCheck, Shield, Crown } from "lucide-react";
+import { Shield, Crown } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { getUsers, setUserRole } from "@/app/actions/admin";
-
-interface User {
-  id: number;
-  email: string;
-  name: string | null;
-  role: string;
-  createdAt: string;
-  isFirstUser: boolean;
-}
+import { UserRole, User } from "@/lib/types";
 
 export function UserRoleManagement() {
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"user" | "admin">("user");
+  const [role, setRole] = useState<UserRole>("user");
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
-  
+
   // Fetch users when component mounts using server action
   useEffect(() => {
     async function fetchUsers() {
       try {
+        setLoadingUsers(true);
         const result = await getUsers();
         
-        if (result.success && result.users) {
-          // Map the user data to match our interface
-          const formattedUsers = result.users.map(user => ({
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-            isFirstUser: user.isFirstUser || false,
-            createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString()
-          }));
-          setUsers(formattedUsers);
+        if (result.data && result.data.users) {
+          setUsers(result.data.users);
         } else {
-          console.error("Failed to load users:", result.error);
+          console.error("Failed to load users:", result.errors || result.message);
+          toast({
+            title: "Error",
+            description: result.message || "Failed to load users",
+            variant: "destructive",
+          });
         }
       } catch (error) {
         console.error("Error loading users:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load users. Please try again later.",
+          variant: "destructive",
+        });
       } finally {
         setLoadingUsers(false);
       }
@@ -73,20 +67,23 @@ export function UserRoleManagement() {
     setIsLoading(true);
     
     try {
-      // Use server action instead of fetch API
+      // Use server action
       const result = await setUserRole(email, role);
-      
-      if (!result.success) {
-        throw new Error(result.error || "Failed to update user role");
+
+      // Check the status field from ActionState
+      if (result.status === "success") {
+        toast({
+          title: "Success",
+          description: result.message || `User ${email} role updated to ${role}`,
+        });
+        // Reset form
+        setEmail("");
+        // Optionally trigger user list refresh if not handled by useEffect dependency
+        // fetchUsers(); // Or rely on isLoading changing in useEffect dependency array
+      } else {
+        // Handle error status
+        throw new Error(result.message || "Failed to update user role");
       }
-      
-      toast({
-        title: "Success",
-        description: `User ${email} role updated to ${role}`,
-      });
-      
-      // Reset form
-      setEmail("");
     } catch (error) {
       console.error("Error updating user role:", error);
       toast({
@@ -131,7 +128,7 @@ export function UserRoleManagement() {
               </label>
               <Select
                 value={role}
-                onValueChange={(value: string) => setRole(value as "user" | "admin")}
+                onValueChange={(value) => setRole(value as UserRole)}
               >
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Select a role" />
@@ -189,7 +186,7 @@ export function UserRoleManagement() {
                         <Badge variant="outline">User</Badge>
                       )}
                     </TableCell>
-                    <TableCell>{formatDate(user.createdAt)}</TableCell>
+                    <TableCell>{user.createdAt ? formatDate(user.createdAt) : "—"}</TableCell>
                     <TableCell>
                       {user.isFirstUser && (
                         <div className="flex items-center text-amber-500 font-medium">

@@ -1,139 +1,143 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Shield, Menu, X, Database, Lock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { useState, useEffect } from "react"
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-  useUser,
-} from '@clerk/nextjs'
-import { useAdmin } from "@/hooks/use-admin"
+import Link from "next/link";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, Shield, X } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
+import { usePathname } from "next/navigation";
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { cn } from "@/lib/utils";
+import { useAdmin } from "@/hooks/use-admin";
 
-export function Navbar() {
-  const pathname = usePathname()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { isAdmin, isLoading } = useAdmin()
-
-  // Define base routes available to all authenticated users
-  const baseRoutes = [
-    {
-      href: "/",
-      label: "Home",
-      active: pathname === "/",
-    },
-    {
-      href: "/blog",
-      label: "Blog",
-      active: pathname === "/blog" || pathname.startsWith("/blog/"),
-    },
-    {
-      href: "/projects",
-      label: "Projects",
-      active: pathname === "/projects",
-    },
-  ]
+export default function Navbar() {
+  const pathname = usePathname();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAdmin } = useAdmin();
   
-  // Define admin routes only visible to admin users
-  const adminRoutes = [
-    {
-      href: "/admin",
-      label: "Admin",
-      active: pathname === "/admin",
-      icon: <Lock className="mr-1 h-4 w-4" />
-    },
-  ]
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/about", label: "About" },
+    { href: "/blog", label: "Blog" },
+    { href: "/projects", label: "Projects" },
+  ];
   
-  // Combine routes based on admin status
-  const routes = isLoading 
-    ? baseRoutes 
-    : isAdmin 
-    ? [...baseRoutes, ...adminRoutes] 
-    : baseRoutes
+  const adminLink = { 
+    href: "/admin", 
+    label: "Admin Dashboard" 
+  };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 font-semibold">
             <Shield className="h-6 w-6 text-primary" />
-            <span className="text-lg font-bold">CyberShield</span>
+            <span className="">CyberApp</span>
           </Link>
-        </div>
-
-        {/* Desktop navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          {routes.map((route) => (
+        </div>        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-5 text-sm font-medium">
+          {navLinks.map((link) => (
             <Link
-              key={route.href}
-              href={route.href}
-              className={`text-sm font-medium transition-colors hover:text-primary flex items-center ${
-                route.active ? "text-foreground" : "text-muted-foreground"
-              }`}
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "transition-colors hover:text-foreground/80",
+                pathname === link.href ? "text-foreground" : "text-foreground/60"
+              )}
+              onClick={() => setIsMenuOpen(false)}
             >
-              {/* {route.icon} */}
-              {route.label}
+              {link.label}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-4">
+        {/* Mobile Menu Trigger */}
+        <div className="flex items-center md:hidden">
+          <ThemeToggle />
+          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="ml-2">
+                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full max-w-xs">
+              <nav className="flex flex-col gap-4 mt-8">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                
+                {/* Add Admin link in mobile menu */}
+                {isAdmin && (
+                  <Link
+                    href={adminLink.href}
+                    className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {adminLink.label}
+                  </Link>
+                )}
+              </nav>
+              <div className="mt-auto pt-6">
+                <SignedOut>
+                  <div className="flex flex-col gap-2">
+                    <SignInButton mode="modal">
+                      <Button variant="outline" className="w-full">Sign In</Button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <Button className="w-full">Sign Up</Button>
+                    </SignUpButton>
+                  </div>
+                </SignedOut>
+                <SignedIn>
+                  <div className="flex items-center justify-between">
+                    <UserButton afterSignOutUrl="/" />
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href="/settings">Settings</Link>
+                    </Button>
+                  </div>
+                </SignedIn>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        {/* Desktop Auth Buttons and Theme Toggle */}
+        <div className="hidden md:flex items-center gap-3">
           <SignedOut>
-            <SignInButton />
-            <SignUpButton />
+            <SignInButton mode="modal">
+              <Button variant="outline" size="sm">Sign In</Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button size="sm">Sign Up</Button>
+            </SignUpButton>
           </SignedOut>
           <SignedIn>
-            <UserButton />
+            <UserButton afterSignOutUrl="/" />
           </SignedIn>
           <ThemeToggle />
-          
-          {/* Only show Admin Dashboard button to admin users */}
-          {isAdmin && (
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/admin" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                Admin Dashboard
-              </Link>
-            </Button>
-          )}
-        </div>
 
-        {/* Mobile menu button */}
-        <div className="flex md:hidden items-center gap-4">
-          <ThemeToggle />
-          <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          {/* Admin dashboard button */}
+          <SignedIn>
+            {isAdmin && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={adminLink.href} className="flex items-center gap-2">
+                  {adminLink.label}
+                </Link>
+              </Button>
+            )}
+          </SignedIn>
         </div>
       </div>
-
-      {/* Mobile menu */}
-      {isMenuOpen && (
-        <div className="md:hidden border-t">
-          <div className="container py-4 flex flex-col gap-4">
-            {routes.map((route) => (
-              <Link
-                key={route.href}
-                href={route.href}
-                className={`text-sm font-medium transition-colors hover:text-primary flex items-center ${
-                  route.active ? "text-foreground" : "text-muted-foreground"
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {/* {route.icon} */}
-                {route.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
     </header>
-  )
+  );
 }

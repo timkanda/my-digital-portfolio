@@ -2,35 +2,37 @@
 
 import { db, subscribers, blogPosts } from "@/lib/db";
 import { sql } from "drizzle-orm";
-import { ensureTablesExist } from "@/lib/db-init";
 
-/**
- * Server action to test the database connection
- * Replaces the GET /api/test-db endpoint
- */
-export async function testDatabaseConnection() {
+export type DatabaseTestResult = {
+  success: boolean;
+  message: string;
+  timestamp?: string;
+  counts?: {
+    subscribers: number;
+    blogPosts: number;
+  };
+  error?: string;
+};
+
+export async function checkDatabaseStatus(): Promise<DatabaseTestResult> {
   try {
-    // Ensure database tables exist before querying
-    await ensureTablesExist();
-
-    // Test the database connection
-    const result = await db.execute(sql`SELECT NOW()`);
-
-    // Get counts from both tables
-    const subscriberCount = await db.select({ count: sql`COUNT(*)` }).from(subscribers);
-    const blogPostCount = await db.select({ count: sql`COUNT(*)` }).from(blogPosts);
-
+    // Get the most recent createdAt timestamp from subscribers as a proxy for DB time
+    const latestSubscriber = await db.select({ createdAt: subscribers.createdAt })
+      .from(subscribers)
+      .orderBy(sql`${subscribers.createdAt} DESC`)
+      .limit(1);
+    const [{ count: subscriberCount }] = await db.select({ count: sql`COUNT(*)` }).from(subscribers);
+    const [{ count: blogPostCount }] = await db.select({ count: sql`COUNT(*)` }).from(blogPosts);
     return {
       success: true,
       message: "Database connection successful",
-      timestamp: result.rows[0].now,
+      timestamp: latestSubscriber[0]?.createdAt?.toISOString?.() || new Date().toISOString(),
       counts: {
-        subscribers: subscriberCount[0].count,
-        blogPosts: blogPostCount[0].count,
+        subscribers: Number(subscriberCount),
+        blogPosts: Number(blogPostCount),
       },
     };
   } catch (error) {
-    console.error("Database connection error:", error);
     return {
       success: false,
       message: "Database connection failed",

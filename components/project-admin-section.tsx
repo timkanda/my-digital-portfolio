@@ -1,31 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import AddProjectForm from "./add-project-form";
 import { useRouter } from "next/navigation";
-import { checkAdminStatus } from "@/app/actions/admin";
+import AddProjectForm from "./add-project-form";
+import { useAdmin } from "@/hooks/use-admin";
 
 export default function ProjectAdminSection() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isAdmin, isLoading } = useAdmin();
   const router = useRouter();
-  
-  // Check admin status using the server action instead of API call
-  useEffect(() => {
-    async function checkIsAdmin() {
-      try {
-        const result = await checkAdminStatus();
-        setIsAdmin(result.isAdmin);
-      } catch (error) {
-        console.error("Error checking admin status:", error);
-        setIsAdmin(false);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    
-    checkIsAdmin();
-  }, []);
   
   // Function to refresh the page when a new project is added
   const handleProjectAdded = () => {

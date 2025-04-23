@@ -31,6 +31,13 @@ export async function syncUser() {
     
     // Sync the user with our database (this handles first-user-as-admin logic)
     const dbUser = await syncUserWithDatabase(email, name);
+
+    if (!dbUser) {
+      return {
+        success: false,
+        error: "Failed to sync user with database"
+      };
+    }
     
     // Return the user data with role information
     return {

@@ -1,8 +1,7 @@
-import Link from "next/link"
-import { Shield, Download, ExternalLink } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ExternalLink, Shield, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function SecurityToolsPage() {
   return (
@@ -37,7 +36,7 @@ export default function SecurityToolsPage() {
                 </div>
                 <CardTitle>Wireshark</CardTitle>
                 <CardDescription>
-                  The world's foremost and widely-used network protocol analyzer for network troubleshooting and
+                  The world&apos;s foremost and widely-used network protocol analyzer for network troubleshooting and
                   analysis.
                 </CardDescription>
               </CardHeader>
