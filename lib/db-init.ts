@@ -54,17 +54,6 @@ export async function ensureTablesExist() {
     } else {
       console.log("Tables exist, updating schema...")
       
-      // Drop role column from subscribers table if it exists
-      // This completes the separation between subscribers and authentication
-      try {
-        await db.execute(sql`
-          ALTER TABLE subscribers
-          DROP COLUMN IF EXISTS role;
-        `);
-        console.log("Role column removed from subscribers table if it existed");
-      } catch (error) {
-        console.error("Error removing role column from subscribers table:", error);
-      }
       
       console.log("Now checking users table exists...")
       
@@ -102,16 +91,6 @@ export async function ensureTablesExist() {
           updated_at TIMESTAMP DEFAULT NOW()
         )
       `)
-
-      // Drop contact_submissions table if it exists (as requested)
-      try {
-        await db.execute(sql`
-          DROP TABLE IF EXISTS contact_submissions;
-        `);
-        console.log("contact_submissions table removed");
-      } catch (error) {
-        console.error("Error removing contact_submissions table:", error);
-      }
 
       console.log("Tables created successfully")
 
