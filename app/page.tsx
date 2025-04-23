@@ -53,7 +53,7 @@ export default async function Home() {
                     Get Started
                   </Button>
                 </Link> */}
-                <Link href="/services">
+                <Link href="/projects">
                   <Button size="lg" variant="outline">
                     Learn More
                   </Button>
