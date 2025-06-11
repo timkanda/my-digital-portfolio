@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { syncUser } from "@/app/actions/auth";
+//import { syncUser } from "@/app/actions/auth";
 
 /**
  * AuthSync component

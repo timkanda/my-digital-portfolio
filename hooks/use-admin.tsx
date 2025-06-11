@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import { checkAdminStatus } from "@/app/actions/admin";
+//import { checkAdminStatus } from "@/app/actions/admin";
 
 /**
  * Custom hook to check if the current user has admin privileges

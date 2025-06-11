@@ -42,6 +42,7 @@ export const subscribers = pgTable("subscribers", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+
 // Define the users table schema - for authentication and role-based access
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
