@@ -1,17 +1,28 @@
-//import { db, blogPosts } from "@/lib/db"; // Import blogPosts table
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import { BlogPost } from "@/lib/types"; // Import BlogPost type from lib/types
-import { formatDate } from "@/lib/utils"; // Assuming formatDate is in utils
+import { BlogPost } from "@/lib/types";
+import { formatDate } from "@/lib/utils";
 
 export default async function BlogPage() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_PAYLOAD_URL}/api/blog-posts?limit=10`, {
-    cache: "no-store", // for live content updates
-  });
+  let posts: BlogPost[] = [];
 
-  const data = await res.json();
-  const posts: BlogPost[] = data.docs;
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_PAYLOAD_URL}/api/blog-posts?limit=10`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Failed to fetch blog posts. Response:", errorText);
+      throw new Error("Failed to fetch blog posts");
+    }
+
+    const data = await res.json();
+    posts = data.docs;
+  } catch (error) {
+    console.error("❌ Error loading blog posts:", error);
+  }
 
   return (
     <div className="flex flex-col">
@@ -26,39 +37,44 @@ export default async function BlogPage() {
             </div>
           </div>
         </div>
-        {/* Animated background */}
         <div className="absolute inset-0 bg-grid-white/5 bg-[size:50px_50px] opacity-10"></div>
         <div className="absolute inset-0 bg-black bg-opacity-80"></div>
       </section>
 
       <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
         <div className="container px-4 md:px-6">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post) => ( // Type is inferred correctly now
-              <Card key={post.id} className="overflow-hidden">
-                {post.coverImage && ( // Use coverImage instead of imageUrl
-                  <Link href={`/blog/${post.slug}`}>
-                    <Image
-                      src={post.coverImage} // Use coverImage
-                      alt={post.title}
-                      width={400}
-                      height={225}
-                      className="w-full h-48 object-cover"
-                    />
-                  </Link>
-                )}
-                <CardHeader>
-                  <CardTitle>{post.title}</CardTitle>
-                  {/* Excerpt is not nullable in the schema, so no need for null check */}
-                  <CardDescription>{post.excerpt}</CardDescription>
-                </CardHeader>
-                <CardContent className="mt-auto">
-                  {/* Ensure formatDate handles Date | null if createdAt can be null */}
-                  <p className="text-sm text-muted-foreground">{post.createdAt ? formatDate(post.createdAt) : 'Date unavailable'}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {posts.length > 0 ? (
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {posts.map((post) => (
+                <Card key={post.id} className="overflow-hidden">
+                  {post.coverImage && (
+                    <Link href={`/blog/${post.slug}`}>
+                      <Image
+                        src={post.coverImage}
+                        alt={post.title}
+                        width={400}
+                        height={225}
+                        className="w-full h-48 object-cover"
+                      />
+                    </Link>
+                  )}
+                  <CardHeader>
+                    <CardTitle>{post.title}</CardTitle>
+                    <CardDescription>{post.excerpt}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="mt-auto">
+                    <p className="text-sm text-muted-foreground">
+                      {post.createdAt ? formatDate(post.createdAt) : "Date unavailable"}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground text-lg">
+              No blog posts available at the moment.
+            </p>
+          )}
         </div>
       </section>
     </div>

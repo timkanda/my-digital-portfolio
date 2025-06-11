@@ -11,6 +11,9 @@ async function getBlogPost(slug: string) {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_PAYLOAD_URL}/api/blog-posts?where[slug][equals]=${slug}`, {
       cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
     if (!res.ok) throw new Error(`Error: ${res.statusText}`);
@@ -109,7 +112,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
               </p>
             </div>
             <div className="w-full max-w-md">
-            <NewsletterForm /> 
+            
             </div>
           </div>
         </div>
