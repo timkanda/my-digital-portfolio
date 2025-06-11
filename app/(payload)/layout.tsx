@@ -1,31 +1,46 @@
-/* THIS FILE WAS GENERATED AUTOMATICALLY BY PAYLOAD. */
-/* DO NOT MODIFY IT BECAUSE IT COULD BE REWRITTEN AT ANY TIME. */
-import config from '@payload-config'
-import '@payloadcms/next/css'
-import type { ServerFunctionClient } from 'payload'
-import { handleServerFunctions, RootLayout } from '@payloadcms/next/layouts'
-import React from 'react'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import Navbar from "@/components/navbar";
+import { Footer } from "@/components/footer";
+import { Toaster } from "@/components/ui/sonner";
+import { ClerkProvider } from "@clerk/nextjs";
+import { AuthSync } from "@/components/auth-sync";
 
-import { importMap } from './admin/importMap.js'
-import './custom.scss'
+const inter = Inter({ subsets: ["latin"] });
 
-type Args = {
-  children: React.ReactNode
+export const metadata: Metadata = {
+  title: "CyberShield | Cybersecurity Portfolio",
+  description: "Professional portfolio showcasing expertise in cybersecurity",
+  generator: "v0.dev",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+      <html lang="en" suppressHydrationWarning>
+        <body className={inter.className}>
+          <AuthSync />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <Toaster />
+            </div>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
+  );
 }
-
-const serverFunction: ServerFunctionClient = async function (args) {
-  'use server'
-  return handleServerFunctions({
-    ...args,
-    config,
-    importMap,
-  })
-}
-
-const Layout = ({ children }: Args) => (
-  <RootLayout config={config} importMap={importMap} serverFunction={serverFunction}>
-    {children}
-  </RootLayout>
-)
-
-export default Layout
