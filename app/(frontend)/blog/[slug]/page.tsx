@@ -2,27 +2,30 @@ import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Calendar, User, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-//import { NewsletterForm } from "@/components/newsletter-form"
-import { db, blogPosts } from "@/lib/db"
-import { eq } from "drizzle-orm"
 import { formatDate } from "@/lib/utils"
 import { notFound } from "next/navigation"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+//import { NewsletterForm } from "@/components/newsletter-form"
 
 async function getBlogPost(slug: string) {
   try {
-    const post = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug)).limit(1)
-    return { post: post[0] || null, error: null }
+    const res = await fetch(`${process.env.NEXT_PUBLIC_PAYLOAD_URL}/api/blog-posts?where[slug][equals]=${slug}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) throw new Error(`Error: ${res.statusText}`);
+
+    const data = await res.json();
+    return { post: data.docs?.[0] || null, error: null };
   } catch (error) {
-    console.error("Error fetching blog post:", error)
-    return { post: null, error: error }
+    console.error("Error fetching blog post:", error);
+    return { post: null, error };
   }
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { post, error } = await getBlogPost((await params).slug)
+export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+  const { post, error } = await getBlogPost(params.slug);
 
-  // If there's a database error, show an error message
   if (error) {
     return (
       <div className="flex flex-col">
@@ -35,24 +38,18 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </Link>
 
           <Alert variant="destructive" className="mb-8">
-            <AlertTitle>Database Error</AlertTitle>
+            <AlertTitle>API Error</AlertTitle>
             <AlertDescription>
-              There was an error connecting to the database. Please try refreshing the page or contact support if the
-              issue persists.
+              Failed to load the blog post. Please try again later or contact support.
             </AlertDescription>
           </Alert>
-
-          <div className="flex justify-center mt-8">
-            <Button onClick={() => window.location.reload()}>Refresh Page</Button>
-          </div>
         </div>
       </div>
-    )
+    );
   }
 
-  // If the post doesn't exist, show a 404 page
   if (!post) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -112,11 +109,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               </p>
             </div>
             <div className="w-full max-w-md">
-              <NewsletterForm />
+            <NewsletterForm /> 
             </div>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }
